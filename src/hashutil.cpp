@@ -356,32 +356,24 @@ hash_command_output(Hash& hash,
                     const std::string& command,
                     const std::string& compiler)
 {
-#ifdef _WIN32
-  std::string adjusted_command = Util::strip_whitespace(command);
-
-  // Add "echo" command.
-  bool using_cmd_exe;
-  if (Util::starts_with(adjusted_command, "echo")) {
-    adjusted_command = FMT("cmd.exe /c \"{}\"", adjusted_command);
-    using_cmd_exe = true;
-  } else if (Util::starts_with(adjusted_command, "%compiler%")
-             && compiler == "echo") {
-    adjusted_command =
-      FMT("cmd.exe /c \"{}{}\"", compiler, adjusted_command.substr(10));
-    using_cmd_exe = true;
-  } else {
-    using_cmd_exe = false;
-  }
-  Args args = Args::from_string(adjusted_command);
-#else
   Args args = Args::from_string(command);
-#endif
 
   for (size_t i = 0; i < args.size(); i++) {
     if (args[i] == "%compiler%") {
       args[i] = compiler;
     }
   }
+
+#ifdef _WIN32
+  // Add "echo" command.
+  if (!args.empty() && args[0] == "echo") {
+    std::string shell_cmd = args.to_string();
+    args = Args();
+    args.push_back("cmd.exe");
+    args.push_back("/c");
+    args.push_back(std::move(shell_cmd));
+  }
+#endif
 
   auto argv = args.to_argv();
   LOG("Executing compiler check command {}",
@@ -413,12 +405,7 @@ hash_command_output(Hash& hash,
   si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
   si.dwFlags = STARTF_USESTDHANDLES;
 
-  std::string win32args;
-  if (using_cmd_exe) {
-    win32args = adjusted_command; // quoted
-  } else {
-    win32args = Win32Util::argv_to_string(argv.data(), sh);
-  }
+  std::string win32args = Win32Util::argv_to_string(argv.data(), sh);
   BOOL ret = CreateProcess(path.c_str(),
                            const_cast<char*>(win32args.c_str()),
                            nullptr,

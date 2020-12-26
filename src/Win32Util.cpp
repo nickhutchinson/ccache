@@ -86,34 +86,41 @@ argv_to_string(const char* const* argv, const std::string& prefix)
   const char* arg = prefix.empty() ? argv[i++] : prefix.c_str();
 
   do {
-    int bs = 0;
-    result += '"';
-    for (size_t j = 0; arg[j]; ++j) {
-      switch (arg[j]) {
+    if (strpbrk(arg, "\" ") == nullptr) {
+      // This argument does not require escaping for CreateProcess().
+      result.append(arg);
+      result.push_back(' ');
+      continue;
+    }
+
+    result.push_back('"');
+    size_t consecutive_backslash_count = 0;
+    const char* span_begin = arg;
+    for (const char* it = arg; *it != '\0'; ++it) {
+      switch (*it) {
       case '\\':
-        ++bs;
+        ++consecutive_backslash_count;
         break;
-      // Fallthrough.
       case '"':
-        bs = (bs << 1) + 1;
-      // Fallthrough.
+        result.append(span_begin, it);
+        result.append(consecutive_backslash_count + 1, '\\');
+        span_begin = it;
+        consecutive_backslash_count = 0;
+        break;
       default:
-        while (bs > 0) {
-          result += '\\';
-          --bs;
-        }
-        result += arg[j];
+        consecutive_backslash_count = 0;
+        break;
       }
     }
-    bs <<= 1;
-    while (bs > 0) {
-      result += '\\';
-      --bs;
-    }
-    result += "\" ";
+    result.append(span_begin);
+    result.append(consecutive_backslash_count, '\\');
+    result.push_back('"');
+    result.push_back(' ');
   } while ((arg = argv[i++]));
 
-  result.resize(result.length() - 1);
+  // Remove extraneous space
+  result.pop_back();
+
   return result;
 }
 

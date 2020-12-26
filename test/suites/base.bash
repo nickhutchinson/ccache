@@ -975,7 +975,12 @@ EOF
     expect_stat 'cache hit (preprocessed)' 1
     expect_stat 'cache miss' 2
 
-    CCACHE_COMPILERCHECK='echo foo; echo bar' $CCACHE ./compiler.sh -c test1.c
+    cat <<'EOF' >echo.sh
+#!/bin/sh
+echo "$@"
+EOF
+    chmod +x echo.sh
+    CCACHE_COMPILERCHECK='./echo.sh foo; ./echo.sh bar' $CCACHE ./compiler.sh -c test1.c
     expect_stat 'cache hit (preprocessed)' 2
     expect_stat 'cache miss' 2
 

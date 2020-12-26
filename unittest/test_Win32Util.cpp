@@ -27,16 +27,20 @@ TEST_CASE("Win32Util::argv_to_string")
 {
   {
     const char* const argv[] = {"a", nullptr};
-    CHECK(Win32Util::argv_to_string(argv, "") == R"("a")");
+    CHECK(Win32Util::argv_to_string(argv, "") == R"(a)");
   }
   {
     const char* const argv[] = {"a", nullptr};
-    CHECK(Win32Util::argv_to_string(argv, "p") == R"("p" "a")");
+    CHECK(Win32Util::argv_to_string(argv, "p") == R"(p a)");
+  }
+  {
+    const char* const argv[] = {"a\\b", nullptr};
+    CHECK(Win32Util::argv_to_string(argv, "") == R"(a\b)");
   }
   {
     const char* const argv[] = {"a", "b c", "\"d\"", "'e'", "\\\"h", nullptr};
     CHECK(Win32Util::argv_to_string(argv, "")
-          == R"("a" "b c" "\"d\"" "'e'" "\\\"h")");
+          == R"(a "b c" "\"d\"" 'e' "\\\"h")");
   }
 }
 
