@@ -857,6 +857,16 @@ is_precompiled_header(string_view path)
          || get_extension(dir_name(path)) == ".gch";
 }
 
+bool
+is_dev_null(nonstd::string_view path)
+{
+#ifdef _WIN32
+  return path.size() == 3 && strncasecmp(path.data(), "nul", 3) == 0;
+#else
+  return path == "/dev/null";
+#endif
+}
+
 optional<tm>
 localtime(optional<time_t> time)
 {

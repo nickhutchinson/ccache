@@ -961,7 +961,7 @@ to_cache(Context& ctx,
   args.push_back("-o");
   args.push_back(ctx.args_info.output_obj);
 
-  if (ctx.config.hard_link() && ctx.args_info.output_obj != "/dev/null") {
+  if (ctx.config.hard_link() && !Util::is_dev_null(ctx.args_info.output_obj)) {
     // Workaround for Clang bug where it overwrites an existing object file
     // when it's compiling an assembler file, see
     // <https://bugs.llvm.org/show_bug.cgi?id=39782>.
@@ -1068,7 +1068,7 @@ to_cache(Context& ctx,
   }
 
   bool produce_dep_file = ctx.args_info.generating_dependencies
-                          && ctx.args_info.output_dep != "/dev/null";
+                          && !Util::is_dev_null(ctx.args_info.output_dep);
 
   if (produce_dep_file) {
     Depfile::make_paths_relative_in_output_dep(ctx);
@@ -1645,7 +1645,7 @@ calculate_result_name(Context& ctx,
         hash.hash_delimiter("arg");
         hash.hash(args[i].data(), 3);
 
-        if (ctx.args_info.output_dep != "/dev/null") {
+        if (!Util::is_dev_null(ctx.args_info.output_dep)) {
           bool separate_argument = (args[i].size() == 3);
           if (separate_argument) {
             // Next argument is dependency name, so skip it.
@@ -1714,7 +1714,7 @@ calculate_result_name(Context& ctx,
   // Make results with dependency file /dev/null different from those without
   // it.
   if (ctx.args_info.generating_dependencies
-      && ctx.args_info.output_dep == "/dev/null") {
+      && Util::is_dev_null(ctx.args_info.output_dep)) {
     hash.hash_delimiter("/dev/null dependency file");
   }
 
@@ -2399,7 +2399,7 @@ do_cache_compilation(Context& ctx, const char* const* argv)
 
   if (ctx.config.depend_mode()
       && (!ctx.args_info.generating_dependencies
-          || ctx.args_info.output_dep == "/dev/null"
+          || Util::is_dev_null(ctx.args_info.output_dep)
           || !ctx.config.run_second_cpp())) {
     LOG_RAW("Disabling depend mode");
     ctx.config.set_depend_mode(false);

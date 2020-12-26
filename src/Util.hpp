@@ -304,6 +304,9 @@ is_full_path(nonstd::string_view path)
 // Headers" in GCC docs).
 bool is_precompiled_header(nonstd::string_view path);
 
+// Returns whether `path` is the null device.
+bool is_dev_null(nonstd::string_view path);
+
 // Thread-safe version of `localtime(3)`. If `time` is not specified the current
 // time of day is used.
 nonstd::optional<tm> localtime(nonstd::optional<time_t> time = {});
