@@ -89,7 +89,7 @@ ResultRetriever::on_entry_start(uint32_t entry_number,
 
   case FileType::dwarf_object:
     if (m_ctx.args_info.seen_split_dwarf
-        && m_ctx.args_info.output_obj != "/dev/null") {
+        && !Util::is_dev_null(m_ctx.args_info.output_obj)) {
       dest_path = m_ctx.args_info.output_dwo;
     }
     break;
@@ -105,7 +105,7 @@ ResultRetriever::on_entry_start(uint32_t entry_number,
     // Written in on_entry_end.
   } else if (dest_path.empty()) {
     LOG_RAW("Not writing");
-  } else if (dest_path == "/dev/null") {
+  } else if (Util::is_dev_null(dest_path)) {
     LOG_RAW("Not writing to /dev/null");
   } else if (raw_file) {
     Util::clone_hard_link_or_copy_file(m_ctx, *raw_file, dest_path, false);

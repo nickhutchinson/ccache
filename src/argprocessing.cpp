@@ -843,7 +843,7 @@ process_arg(Context& ctx,
   //
   // Note that "/dev/null" is an exception that is sometimes used as an input
   // file when code is testing compiler flags.
-  if (args[i] != "/dev/null") {
+  if (!Util::is_dev_null(args[i])) {
     auto st = Stat::stat(args[i]);
     if (!st || !st.is_regular()) {
       LOG("{} is not a regular file, not considering as input file", args[i]);
@@ -1075,7 +1075,7 @@ process_args(Context& ctx)
   }
 
   // Cope with -o /dev/null.
-  if (args_info.output_obj != "/dev/null") {
+  if (!Util::is_dev_null(args_info.output_obj)) {
     auto st = Stat::stat(args_info.output_obj);
     if (st && !st.is_regular()) {
       LOG("Not a regular file: {}", args_info.output_obj);
