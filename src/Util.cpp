@@ -21,6 +21,7 @@
 #include "Config.hpp"
 #include "Context.hpp"
 #include "Fd.hpp"
+#include "Finalizer.hpp"
 #include "FormatNonstdStringView.hpp"
 #include "Logging.hpp"
 #include "TemporaryFile.hpp"
@@ -1321,6 +1322,22 @@ send_to_stderr(const Context& ctx, const std::string& text)
     modified_text = rewrite_stderr_to_absolute_paths(*text_to_send);
     text_to_send = &modified_text;
   }
+
+#ifdef _WIN32
+  // Set stderr to binary mode unless it's a console. `text` may contain \r\n
+  // sequences. We want to write it to stderr verbatim, without the normal \n ->
+  // \r\n translation of text mode files.
+  DWORD console_mode{}; // unused
+  bool is_console = GetConsoleMode(
+    reinterpret_cast<HANDLE>(_get_osfhandle(STDERR_FILENO)), &console_mode);
+  int prev_mode = !is_console ? _setmode(STDERR_FILENO, O_BINARY) : 0;
+
+  Finalizer cleanup([prev_mode] {
+    if (prev_mode != 0) {
+      _setmode(STDERR_FILENO, prev_mode);
+    }
+  });
+#endif
 
   try {
     write_fd(STDERR_FILENO, text_to_send->data(), text_to_send->length());
