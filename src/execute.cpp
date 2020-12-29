@@ -55,7 +55,7 @@ win32getshell(const std::string& path)
     File fp(path, "r");
     if (fp) {
       char buf[10] = {0};
-      fgets(buf, sizeof(buf) - 1, fp.get());
+      fgets(buf, sizeof(buf), fp.get());
       if (std::string(buf) == "#!/bin/sh" && path_env) {
         sh = find_executable_in_path("sh.exe", "", path_env);
       }
