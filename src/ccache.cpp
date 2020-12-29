@@ -1350,13 +1350,15 @@ hash_common_info(const Context& ctx,
   hash.hash_delimiter("ext");
   hash.hash(ctx.config.cpp_extension());
 
+  std::string compiler_path = args[0];
+  Stat st = Stat::stat(compiler_path, Stat::OnError::log);
 #ifdef _WIN32
-  const std::string compiler_path = Win32Util::add_exe_suffix(args[0]);
-#else
-  const std::string compiler_path = args[0];
+  if (!st) {
+    compiler_path = Win32Util::add_exe_suffix(args[0]);
+    st = Stat::stat(compiler_path, Stat::OnError::log);
+  }
 #endif
 
-  auto st = Stat::stat(compiler_path, Stat::OnError::log);
   if (!st) {
     throw Failure(Statistic::could_not_find_compiler);
   }
