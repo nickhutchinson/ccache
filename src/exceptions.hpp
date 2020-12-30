@@ -44,17 +44,20 @@ public:
   // Special case: If given only one string, don't parse it as a format string.
   Error(const std::string& message);
 
-  // `args` are forwarded to `fmt::format`.
-  template<typename... T> inline Error(T&&... args);
+  // Arguments are are forwarded to `fmt::format`.
+  template<typename Format, typename Arg1, typename... Args>
+  Error(Format&& format, Arg1&& arg1, Args&&... args);
 };
 
 inline Error::Error(const std::string& message) : ErrorBase(message)
 {
 }
 
-template<typename... T>
-inline Error::Error(T&&... args)
-  : ErrorBase(fmt::format(std::forward<T>(args)...))
+template<typename Format, typename Arg1, typename... Args>
+inline Error::Error(Format&& format, Arg1&& arg1, Args&&... args)
+  : ErrorBase(fmt::format(std::forward<Format>(format),
+                          std::forward<Arg1>(arg1),
+                          std::forward<Args>(args)...))
 {
 }
 
@@ -66,16 +69,19 @@ public:
   // Special case: If given only one string, don't parse it as a format string.
   Fatal(const std::string& message);
 
-  // `args` are forwarded to `fmt::format`.
-  template<typename... T> inline Fatal(T&&... args);
+  // Arguments are are forwarded to `fmt::format`.
+  template<typename Format, typename Arg1, typename... Args>
+  Fatal(Format&& format, Arg1&& arg1, Args&&... args);
 };
 
 inline Fatal::Fatal(const std::string& message) : ErrorBase(message)
 {
 }
 
-template<typename... T>
-inline Fatal::Fatal(T&&... args)
-  : ErrorBase(fmt::format(std::forward<T>(args)...))
+template<typename Format, typename Arg1, typename... Args>
+inline Fatal::Fatal(Format&& format, Arg1&& arg1, Args&&... args)
+  : ErrorBase(fmt::format(std::forward<Format>(format),
+                          std::forward<Arg1>(arg1),
+                          std::forward<Args>(args)...))
 {
 }

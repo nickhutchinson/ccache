@@ -186,7 +186,7 @@ DLLIMPORT extern char** environ;
 #endif
 
 // GCC version of a couple of standard C++ attributes
-#ifdef __GNUC__
+#if __cplusplus < 201703L && (defined(__GNUC__) || defined(__clang__))
 #  define nodiscard gnu::warn_unused_result
 #  define maybe_unused gnu::unused
 #endif

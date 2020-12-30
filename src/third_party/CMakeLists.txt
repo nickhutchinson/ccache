@@ -1,9 +1,9 @@
 add_library(third_party_lib STATIC base32hex.c format.cpp xxhash.c)
-if(NOT MSVC)
-  target_sources(third_party_lib PRIVATE getopt_long.c)
-else()
+if(MSVC_VERSION)
   target_sources(third_party_lib PRIVATE win32/getopt.c)
   target_compile_definitions(third_party_lib PUBLIC -DSTATIC_GETOPT)
+else()
+  target_sources(third_party_lib PRIVATE getopt_long.c)
 endif()
 
 if(WIN32)

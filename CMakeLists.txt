@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.4.3)
 
+if(POLICY CMP0091)
+  # Windows: Allow selecting VS runtime via CMAKE_MSVC_RUNTIME_LIBRARY
+  cmake_policy(SET CMP0091 NEW)
+endif()
+
 project(ccache LANGUAGES C CXX)
 if(MSVC)
   enable_language(ASM_MASM)
@@ -9,7 +14,12 @@ endif()
 set(CMAKE_PROJECT_DESCRIPTION "a fast C/C++ compiler cache")
 
 if(NOT "${CMAKE_CXX_STANDARD}")
-  set(CMAKE_CXX_STANDARD 11)
+  if (MSVC_VERSION)
+    # C++17 <filesystem> required with MSVC stdlib.
+    set(CMAKE_CXX_STANDARD 17)
+  else()
+    set(CMAKE_CXX_STANDARD 11)
+  endif()
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS NO)

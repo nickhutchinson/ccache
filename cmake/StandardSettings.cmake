@@ -50,5 +50,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "^GNU|(Apple)?Clang$")
   include(StdAtomic)
 
 elseif(MSVC)
-  target_compile_options(standard_settings INTERFACE /std:c++latest /Zc:preprocessor /Zc:__cplusplus /D_CRT_SECURE_NO_WARNINGS)
+  target_compile_options(standard_settings INTERFACE /permissive- /Zc:preprocessor /Zc:__cplusplus)
+endif()
+
+if(MSVC_VERSION)
+  # Using MSVC stdlib.
+  target_compile_definitions(standard_settings INTERFACE
+    _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
 endif()
