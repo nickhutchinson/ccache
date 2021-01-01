@@ -101,6 +101,14 @@ if(HAVE_SYS_MMAN_H AND HAVE_PTHREAD_MUTEXATTR_SETPSHARED)
   set(INODE_CACHE_SUPPORTED 1)
 endif()
 
+if(WIN32)
+  option(STATIC_LINK "Link statically with system libraries" ${WIN32})
+endif()
+
+if(STATIC_LINK AND MSVC_VERSION)
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 #
 # Third party
 #
@@ -122,10 +130,6 @@ find_package(zstd 1.1.2 REQUIRED)
 #
 include(CodeAnalysis)
 option(ENABLE_TRACING "Enable possibility to use internal ccache tracing" OFF)
-
-if(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  option(STATIC_LINK "Link statically with system libraries" ON)
-endif()
 
 #
 # Source code
