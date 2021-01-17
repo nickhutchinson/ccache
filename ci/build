@@ -16,8 +16,13 @@ else
 
     mkdir -p ${BUILDDIR:-build}
     cd ${BUILDDIR:-build}
+    echo "::group::Configure"
     ${CMAKE_PREFIX:-} cmake ${CMAKE_PARAMS:-} ${CCACHE_LOC:-..}
+    echo "::endgroup"
+    echo "::group::Build"
     ${CMAKE_PREFIX:-} cmake --build . ${EXTRA_CMAKE_BUILD_FLAGS:-} -- -j$JOBS
+    echo "::endgroup"
+    echo "::group::Test"
     case "${RUN_TESTS:-all}" in
         all)
             CC=${TEST_CC:-${CC}} ctest --output-on-failure -j$JOBS "$@"
@@ -29,4 +34,5 @@ else
         none)
             ;;
     esac
+    echo "::endgroup"
 fi
