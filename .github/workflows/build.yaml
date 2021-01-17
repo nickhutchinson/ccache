@@ -336,10 +336,17 @@ jobs:
           $null = New-Item `
             -Path "${HOME}\opt\llvm" `
             -ItemType Junction `
-            -Target "${env:VCINSTALLDIR}\Tools\Llvm\x64" `
+            -Target "${env:VCINSTALLDIR}\Tools\Llvm" `
             -Force
-          "Path=${HOME}\opt\llvm\bin;${env:Path}" | `
-            Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          if ('${{ matrix.config.msvc_arch }}'.EndsWith('x86')) {
+            "Path=${HOME}\opt\llvm\bin;${env:Path}" | `
+              Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          } elseif ('${{ matrix.config.msvc_arch }}'.EndsWith('x64')) {
+            "Path=${HOME}\opt\llvm\x64\bin;${env:Path}" | `
+              Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          }
 
       - name: Build and test
         id: build-and-test
