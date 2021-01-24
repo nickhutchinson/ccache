@@ -1,10 +1,14 @@
 SUITE_readonly_direct_PROBE() {
     mkdir dir
-    chmod a-w dir
-    if [ -w dir ]; then
+    if $HOST_OS_WINDOWS; then
+        icacls.exe dir //deny "Everyone:(OI)(CI)(WD,AD,WEA,WA)" //T >/dev/null
+    else
+        chmod a-w dir
+    fi
+    if touch dir/probe 2>/dev/null; then
         echo "File system doesn't support read-only mode"
     fi
-    rmdir dir
+    rm -fr dir
 }
 
 SUITE_readonly_direct_SETUP() {

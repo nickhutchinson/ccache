@@ -1,10 +1,14 @@
 SUITE_readonly_PROBE() {
     mkdir dir
-    chmod a-w dir
-    if [ -w dir ]; then
+    if $HOST_OS_WINDOWS; then
+        icacls dir //deny "Everyone:(OI)(CI)(WD,AD,WEA,WA)" //T >/dev/null
+    else
+        chmod a-w dir
+    fi
+    if touch dir/probe 2>/dev/null; then
         echo "File system doesn't support read-only mode"
     fi
-    rmdir dir
+    rm -fr dir
 }
 
 SUITE_readonly_SETUP() {
@@ -23,7 +27,11 @@ SUITE_readonly() {
     rm test.o
 
     # Make the cache read-only.
-    chmod -R a-w $CCACHE_DIR
+    if $HOST_OS_WINDOWS; then
+        icacls $CCACHE_DIR //deny "Everyone:(OI)(CI)(WD,AD,WEA,WA)" //T >/dev/null
+    else
+        chmod -R a-w $CCACHE_DIR
+    fi
 
     # Check that read-only mode finds the cached result.
     CCACHE_READONLY=1 CCACHE_TEMPDIR=/tmp CCACHE_PREFIX=false $CCACHE_COMPILE -c test.c
@@ -33,8 +41,12 @@ SUITE_readonly() {
     CCACHE_READONLY=1 CCACHE_TEMPDIR=/tmp $CCACHE_COMPILE -c test2.c
     status2=$?
 
-    # Leave test dir a nice state after test failure.
-    chmod -R +w $CCACHE_DIR
+    # Leave test dir in a nice state after test failure.
+    if $HOST_OS_WINDOWS; then
+        icacls $CCACHE_DIR //reset //T >/dev/null
+    else
+        chmod -R +w $CCACHE_DIR
+    fi
 
     if [ $status1 -ne 0 ]; then
         test_failed "Failure when compiling test.c read-only"
@@ -68,15 +80,23 @@ SUITE_readonly() {
     rm test.o
 
     # Make the cache read-only.
-    chmod -R a-w $CCACHE_DIR
+    if $HOST_OS_WINDOWS; then
+        icacls $CCACHE_DIR //deny "Everyone:(OI)(CI)(WD,AD,WEA,WA)" //T >/dev/null
+    else
+        chmod -R a-w $CCACHE_DIR
+    fi
 
     # Direct mode should work:
     files_before=`find $CCACHE_DIR -type f | wc -l`
     CCACHE_DIRECT=1 CCACHE_READONLY=1 CCACHE_TEMPDIR=/tmp $CCACHE_COMPILE -c test.c
     files_after=`find $CCACHE_DIR -type f | wc -l`
 
-    # Leave test dir a nice state after test failure.
-    chmod -R +w $CCACHE_DIR
+    # Leave test dir in a nice state after test failure.
+    if $HOST_OS_WINDOWS; then
+        icacls $CCACHE_DIR //reset //T >/dev/null
+    else
+        chmod -R +w $CCACHE_DIR
+    fi
 
     if [ $? -ne 0 ]; then
         test_failed "Failure when compiling test.c read-only"
