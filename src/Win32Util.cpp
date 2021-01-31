@@ -62,6 +62,16 @@ argv_to_string(const char* const* argv, const std::string& prefix)
   const char* arg = prefix.empty() ? argv[i++] : prefix.c_str();
 
   do {
+    if (strpbrk(arg, "\" ") == nullptr) {
+      // Only escape an argument if it contains no special characters. While
+      // most Windows programs use CommandLineToArgvW or an equivalent to parse
+      // a command line string and are fine with unnecessary escaping, some
+      // notable programs like cmd.exe will break.
+      result += arg;
+      result += ' ';
+      continue;
+    }
+
     int bs = 0;
     result += '"';
     for (size_t j = 0; arg[j]; ++j) {
