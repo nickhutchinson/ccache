@@ -965,11 +965,20 @@ EOF
     expect_stat 'cache hit (preprocessed)' 1
     expect_stat 'cache miss' 1
 
-    cat <<EOF >foobar.sh
+    if $HOST_OS_WINDOWS; then
+        cat <<EOF >foobar.sh
+#!/bin/sh
+# Use cmd.exe echo for Windows line endings
+MSYS2_ARG_CONV_EXCL="*" cmd.exe /c "echo foo"
+MSYS2_ARG_CONV_EXCL="*" cmd.exe /c "echo bar"
+EOF
+    else
+        cat <<EOF >foobar.sh
 #!/bin/sh
 echo foo
 echo bar
 EOF
+    fi
     chmod +x foobar.sh
     CCACHE_COMPILERCHECK='./foobar.sh' $CCACHE ./compiler.sh -c test1.c
     expect_stat 'cache hit (preprocessed)' 1
