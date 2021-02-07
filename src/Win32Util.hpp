@@ -35,4 +35,13 @@ std::string argv_to_string(const char* const* argv, const std::string& prefix);
 // Return the error message corresponding to `error_code`.
 std::string error_message(DWORD error_code);
 
+// Get last NTSTATUS error value.
+NTSTATUS get_last_ntstatus();
+
+// Maps a NTSTATUS error code to a Win32 error.
+DWORD ntstatus_to_winerror(NTSTATUS ntstatus);
+
+// Maps a Win32 error to a C errno value.
+int winerror_to_errno(DWORD winerror);
+
 } // namespace Win32Util

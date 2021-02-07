@@ -20,8 +20,32 @@
 
 #include "Util.hpp"
 
+#include "third_party/win32/errmap.h"
+
 #include <chrono>
 #include <thread>
+
+namespace {
+
+template<typename Signature>
+Signature*
+get_proc_address(HMODULE module_handle, const char* proc_name)
+{
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  if __GNUC__ >= 8 && !defined(__clang__)
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
+  return reinterpret_cast<Signature*>(GetProcAddress(module_handle, proc_name));
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
+}
+
+} // namespace
 
 namespace Win32Util {
 
@@ -91,6 +115,37 @@ argv_to_string(const char* const* argv, const std::string& prefix)
 
   result.resize(result.length() - 1);
   return result;
+}
+
+NTSTATUS
+get_last_ntstatus()
+{
+  static auto* rtl_get_last_ntstatus_fn =
+    get_proc_address<NTSTATUS NTAPI(void)>(GetModuleHandleA("ntdll.dll"),
+                                           "RtlGetLastNtStatus");
+  return rtl_get_last_ntstatus_fn();
+}
+
+DWORD
+ntstatus_to_winerror(NTSTATUS ntstatus)
+{
+  static auto* rtl_nt_status_to_dos_error_fn =
+    get_proc_address<ULONG NTAPI(NTSTATUS)>(GetModuleHandleA("ntdll.dll"),
+                                            "RtlNtStatusToDosError");
+  switch (ntstatus) {
+  case STATUS_DELETE_PENDING:
+    // RtlNtStatusToDosError translation is lossy, and maps this code to
+    // ERROR_ACCESS_DENIED. We can do better.
+    return ERROR_DELETE_PENDING;
+  default:
+    return rtl_nt_status_to_dos_error_fn(ntstatus);
+  }
+}
+
+int
+winerror_to_errno(DWORD winerror)
+{
+  return ::winerror_to_errno(winerror);
 }
 
 } // namespace Win32Util
