@@ -508,6 +508,13 @@ else
     PATH_DELIM=":"
 fi
 
+if $HOST_OS_WINDOWS && $COMPILER_TYPE_CLANG; then
+    # LLVM depfiles use backslashes when targeting Windows.
+    DEPFILE_PATH_SEP="\\"
+else
+    DEPFILE_PATH_SEP="/"
+fi
+
 if [[ $OSTYPE = msys* ]]; then
     # Native symlink support for Windows.
     export MSYS="${MSYS:-} winsymlinks:nativestrict"
