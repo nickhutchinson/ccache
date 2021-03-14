@@ -90,6 +90,9 @@ jobs:
         run: |
           if [ "${{ runner.os }}" = "Linux" ]; then
             sudo apt-get update
+            cat /etc/apt/sources.list
+            dpkg --print-architecture || true
+            dpkg --print-foreign-architectures || true
 
             # Install ld.gold (binutils) and ld.lld on different runs.
             if [ "${{ matrix.config.os }}" = "ubuntu-16.04" ]; then
