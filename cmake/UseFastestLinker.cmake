@@ -1,3 +1,6 @@
+include(CheckCXXCompilerFlag)
+include(CMakePushCheckState)
+
 # Calls `message(VERBOSE msg)` if and only if VERBOSE is available (since CMake 3.15).
 # Call CMake with --loglevel=VERBOSE to view those messages.
 function(message_verbose msg)
@@ -12,18 +15,24 @@ function(use_fastest_linker)
     return()
   endif()
 
-  find_program(HAS_LD_LLD ld.lld)
-  if(HAS_LD_LLD)
+  cmake_push_check_state()
+  set(CMAKE_REQUIRED_LIBRARIES "-fuse-ld=lld")
+  check_cxx_compiler_flag("" HAS_FLAG_FUSE_LD_LLD)
+  cmake_pop_check_state()
+
+  cmake_push_check_state()
+  set(CMAKE_REQUIRED_LIBRARIES "-fuse-ld=gold")
+  check_cxx_compiler_flag("" HAS_FLAG_FUSE_LD_GOLD)
+  cmake_pop_check_state()
+
+  if(HAS_FLAG_FUSE_LD_LLD)
     link_libraries(-fuse-ld=lld)
     message_verbose("Using lld linker for faster linking")
+  elseif(HAS_FLAG_FUSE_LD_GOLD)
+    link_libraries(-fuse-ld=gold)
+    message_verbose("Using gold linker for faster linking")
   else()
-    find_program(HAS_LD_GOLD ld.gold)
-    if(HAS_LD_GOLD)
-      link_libraries(-fuse-ld=gold)
-      message_verbose("Using gold linker for faster linking")
-    else()
-      message_verbose("Using default linker")
-    endif()
+    message_verbose("Using default linker")
   endif()
 endfunction()
 
